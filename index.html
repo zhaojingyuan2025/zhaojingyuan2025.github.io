@@ -136,7 +136,7 @@
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">手机号码</label>
                     <div class="flex">
                         <input type="tel" id="phone" placeholder="请输入手机号码" class="w-full px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                        <button class="bg-primary text-white px-4 py-2 rounded-r-lg hover:bg-opacity-90 btn-shadow btn-hover">获取验证码</button>
+                        <button id="get-code-btn" class="bg-primary text-white px-4 py-2 rounded-r-lg hover:bg-opacity-90 btn-shadow btn-hover">获取验证码</button>
                     </div>
                 </div>
                 
@@ -1372,13 +1372,57 @@
                 document.getElementById(pageId).classList.add('active');
             }
             
+            // 获取验证码按钮点击事件
+            const getCodeBtn = document.getElementById('get-code-btn');
+            getCodeBtn.addEventListener('click', function() {
+                const phoneInput = document.getElementById('phone');
+                const phone = phoneInput.value.trim();
+                
+                if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+                    alert('请输入正确的手机号码');
+                    return;
+                }
+                
+                // 模拟发送验证码
+                alert('验证码已发送，请注意查收');
+                
+                // 倒计时功能
+                let countdown = 60;
+                getCodeBtn.disabled = true;
+                getCodeBtn.textContent = `${countdown}s后重新获取`;
+                
+                const timer = setInterval(() => {
+                    countdown--;
+                    getCodeBtn.textContent = `${countdown}s后重新获取`;
+                    
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        getCodeBtn.disabled = false;
+                        getCodeBtn.textContent = '获取验证码';
+                    }
+                }, 1000);
+            });
+            
             // 登录按钮点击事件
             loginBtn.addEventListener('click', function() {
                 const communitySelect = document.getElementById('community');
                 const selectedCommunity = communitySelect.options[communitySelect.selectedIndex].text;
+                const verificationInput = document.getElementById('verification');
+                const verificationCode = verificationInput.value.trim();
                 
                 if (!selectedCommunity || selectedCommunity === '请选择您所在的社区') {
                     alert('请选择您所在的社区');
+                    return;
+                }
+                
+                if (!verificationCode) {
+                    alert('请输入验证码');
+                    return;
+                }
+                
+                // 简单验证验证码格式（6位数字）
+                if (!/^\d{6}$/.test(verificationCode)) {
+                    alert('请输入正确的6位验证码');
                     return;
                 }
                 
@@ -1838,10 +1882,41 @@
             // 场景按钮点击事件
             sceneBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    btn.classList.toggle('bg-gray-100');
-                    btn.classList.toggle('bg-primary');
-                    btn.classList.toggle('text-gray-700');
-                    btn.classList.toggle('text-white');
+                    // 如果是自定义场景，显示输入框
+                    if (btn.textContent.trim() === '自定义') {
+                        const customScene = prompt('请输入自定义场景名称：');
+                        if (customScene && customScene.trim()) {
+                            // 移除之前的自定义场景按钮
+                            sceneBtns.forEach(b => {
+                                if (b.dataset.custom === 'true') {
+                                    b.remove();
+                                }
+                            });
+                            
+                            // 创建新的自定义场景按钮
+                            const newSceneBtn = document.createElement('button');
+                            newSceneBtn.className = 'scene-btn px-3 py-1.5 bg-primary text-white rounded-full text-sm';
+                            newSceneBtn.textContent = customScene.trim();
+                            newSceneBtn.dataset.custom = 'true';
+                            
+                            // 添加点击事件
+                            newSceneBtn.addEventListener('click', function() {
+                                newSceneBtn.classList.toggle('bg-gray-100');
+                                newSceneBtn.classList.toggle('bg-primary');
+                                newSceneBtn.classList.toggle('text-gray-700');
+                                newSceneBtn.classList.toggle('text-white');
+                            });
+                            
+                            // 插入到自定义按钮之前
+                            btn.parentNode.insertBefore(newSceneBtn, btn);
+                        }
+                    } else {
+                        // 普通场景按钮切换
+                        btn.classList.toggle('bg-gray-100');
+                        btn.classList.toggle('bg-primary');
+                        btn.classList.toggle('text-gray-700');
+                        btn.classList.toggle('text-white');
+                    }
                 });
             });
             
@@ -1876,6 +1951,315 @@
             contentCards.forEach(card => {
                 card.addEventListener('click', function() {
                     showPage('detail-page');
+                });
+            });
+            
+            // 活动报名点击事件
+            const activitySignup = document.querySelector('#profile-page .flex.items-center.justify-between.p-4:nth-child(4)');
+            if (activitySignup) {
+                activitySignup.addEventListener('click', function() {
+                    // 创建活动报名弹窗
+                    const activityModal = document.createElement('div');
+                    activityModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                    activityModal.innerHTML = `
+                        <div class="bg-white rounded-lg w-3/4 max-w-sm max-h-[80vh] flex flex-col">
+                            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                                <h3 class="text-lg font-medium text-gray-800">活动报名</h3>
+                                <button class="close-activity-modal text-gray-400">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex-1 overflow-y-auto">
+                                <!-- 活动列表 -->
+                                <div class="p-4 border-b border-gray-100">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-sm font-medium text-gray-700">即将开始</h4>
+                                        <span class="text-xs text-primary">2个活动</span>
+                                    </div>
+                                    
+                                    <!-- 活动项 1 -->
+                                    <div class="bg-gray-50 rounded-lg overflow-hidden mb-3">
+                                        <div class="h-32 bg-primary bg-opacity-10 flex items-center justify-center">
+                                            <i class="fa fa-calendar text-primary text-4xl"></i>
+                                        </div>
+                                        <div class="p-3">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <h5 class="text-sm font-medium text-gray-800">社区春节联欢会</h5>
+                                                <span class="text-xs bg-primary text-white px-1.5 py-0.5 rounded">热门</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mb-2">时间：2025年1月15日 14:00-17:00</p>
+                                            <p class="text-xs text-gray-500 mb-3">地点：社区广场</p>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs text-gray-500">已报名：56人</span>
+                                                <button class="signup-btn px-3 py-1 bg-primary text-white text-sm rounded-lg btn-shadow btn-hover">
+                                                    立即报名
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 活动项 2 -->
+                                    <div class="bg-gray-50 rounded-lg overflow-hidden">
+                                        <div class="h-32 bg-secondary bg-opacity-10 flex items-center justify-center">
+                                            <i class="fa fa-tree text-secondary text-4xl"></i>
+                                        </div>
+                                        <div class="p-3">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <h5 class="text-sm font-medium text-gray-800">社区植树活动</h5>
+                                                <span class="text-xs bg-info text-white px-1.5 py-0.5 rounded">新活动</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mb-2">时间：2025年1月20日 9:00-11:00</p>
+                                            <p class="text-xs text-gray-500 mb-3">地点：社区公园</p>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs text-gray-500">已报名：32人</span>
+                                                <button class="signup-btn px-3 py-1 bg-primary text-white text-sm rounded-lg btn-shadow btn-hover">
+                                                    立即报名
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 已报名活动 -->
+                                <div class="p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-sm font-medium text-gray-700">已报名活动</h4>
+                                        <span class="text-xs text-primary">1个活动</span>
+                                    </div>
+                                    
+                                    <!-- 已报名活动项 -->
+                                    <div class="bg-gray-50 rounded-lg overflow-hidden">
+                                        <div class="h-32 bg-lightOrange bg-opacity-10 flex items-center justify-center">
+                                            <i class="fa fa-book text-lightOrange text-4xl"></i>
+                                        </div>
+                                        <div class="p-3">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <h5 class="text-sm font-medium text-gray-800">社区读书分享会</h5>
+                                                <span class="text-xs bg-success text-white px-1.5 py-0.5 rounded">已报名</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mb-2">时间：2025年1月10日 15:00-17:00</p>
+                                            <p class="text-xs text-gray-500 mb-3">地点：社区图书馆</p>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs text-gray-500">参与人数：28人</span>
+                                                <button class="cancel-btn px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded-lg btn-shadow btn-hover">
+                                                    取消报名
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(activityModal);
+                    
+                    // 关闭按钮点击事件
+                    activityModal.querySelector('.close-activity-modal').addEventListener('click', function() {
+                        activityModal.remove();
+                    });
+                    
+                    // 报名按钮点击事件
+                    const signupBtns = activityModal.querySelectorAll('.signup-btn');
+                    signupBtns.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const activityName = this.closest('.bg-gray-50').querySelector('h5').textContent;
+                            alert(`成功报名${activityName}！`);
+                            
+                            // 更新按钮状态
+                            this.textContent = '已报名';
+                            this.classList.remove('bg-primary', 'text-white');
+                            this.classList.add('bg-success', 'text-white');
+                            this.disabled = true;
+                            
+                            // 增加积分
+                            app.user.points += 20;
+                            
+                            // 更新个人中心积分显示
+                            const pointsElement = document.querySelector('#profile-page .text-lg.font-bold.text-primary');
+                            if (pointsElement) pointsElement.textContent = app.user.points;
+                        });
+                    });
+                    
+                    // 取消报名按钮点击事件
+                    const cancelBtn = activityModal.querySelector('.cancel-btn');
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', function() {
+                            const activityName = this.closest('.bg-gray-50').querySelector('h5').textContent;
+                            if (confirm(`确定要取消报名${activityName}吗？`)) {
+                                alert(`已取消报名${activityName}`);
+                                
+                                // 更新按钮状态
+                                this.textContent = '立即报名';
+                                this.classList.remove('bg-gray-300', 'text-gray-700');
+                                this.classList.add('bg-primary', 'text-white');
+                                this.classList.remove('cancel-btn');
+                                this.classList.add('signup-btn');
+                                
+                                // 减少积分
+                                app.user.points = Math.max(0, app.user.points - 20);
+                                
+                                // 更新个人中心积分显示
+                                const pointsElement = document.querySelector('#profile-page .text-lg.font-bold.text-primary');
+                                if (pointsElement) pointsElement.textContent = app.user.points;
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // 积分中心点击事件
+            const pointsCenter = document.querySelector('#profile-page .flex.items-center.justify-between.p-4:nth-child(3)');
+            if (pointsCenter) {
+                pointsCenter.addEventListener('click', function() {
+                    // 创建积分中心弹窗
+                    const pointsModal = document.createElement('div');
+                    pointsModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                    pointsModal.innerHTML = `
+                        <div class="bg-white rounded-lg w-3/4 max-w-sm max-h-[80vh] flex flex-col">
+                            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                                <h3 class="text-lg font-medium text-gray-800">积分中心</h3>
+                                <button class="close-points-modal text-gray-400">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="p-4 border-b border-gray-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="text-sm font-medium text-gray-700">当前积分</h4>
+                                    <span class="text-lg font-bold text-primary">${app.user.points}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-700">当前等级</h4>
+                                    <span class="text-sm text-gray-600">${app.user.level}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4 border-b border-gray-100">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">积分获取记录</h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="w-6 h-6 rounded-full bg-success bg-opacity-10 flex items-center justify-center mr-2">
+                                                <i class="fa fa-plus text-success text-xs"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-600">发布内容</span>
+                                        </div>
+                                        <span class="text-sm text-success">+10</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="w-6 h-6 rounded-full bg-success bg-opacity-10 flex items-center justify-center mr-2">
+                                                <i class="fa fa-plus text-success text-xs"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-600">内容被点赞</span>
+                                        </div>
+                                        <span class="text-sm text-success">+1</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="w-6 h-6 rounded-full bg-success bg-opacity-10 flex items-center justify-center mr-2">
+                                                <i class="fa fa-plus text-success text-xs"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-600">评论</span>
+                                        </div>
+                                        <span class="text-sm text-success">+2</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="w-6 h-6 rounded-full bg-success bg-opacity-10 flex items-center justify-center mr-2">
+                                                <i class="fa fa-plus text-success text-xs"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-600">参加活动</span>
+                                        </div>
+                                        <span class="text-sm text-success">+20</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4 border-b border-gray-100 flex-1 overflow-y-auto">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">积分兑换</h4>
+                                <div class="space-y-3">
+                                    <div class="bg-gray-50 rounded-lg p-3 flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                                            <i class="fa fa-gift text-primary"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h5 class="text-sm font-medium text-gray-800">社区活动优先参与权</h5>
+                                            <p class="text-xs text-gray-500">500积分</p>
+                                        </div>
+                                        <button class="exchange-btn px-3 py-1 bg-primary text-white text-sm rounded-lg btn-shadow btn-hover">
+                                            兑换
+                                        </button>
+                                    </div>
+                                    <div class="bg-gray-50 rounded-lg p-3 flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-secondary bg-opacity-10 flex items-center justify-center mr-3">
+                                            <i class="fa fa-shield text-secondary"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h5 class="text-sm font-medium text-gray-800">社区服务优惠券</h5>
+                                            <p class="text-xs text-gray-500">300积分</p>
+                                        </div>
+                                        <button class="exchange-btn px-3 py-1 bg-primary text-white text-sm rounded-lg btn-shadow btn-hover">
+                                            兑换
+                                        </button>
+                                    </div>
+                                    <div class="bg-gray-50 rounded-lg p-3 flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-lightOrange bg-opacity-10 flex items-center justify-center mr-3">
+                                            <i class="fa fa-star text-lightOrange"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h5 class="text-sm font-medium text-gray-800">专属徽章</h5>
+                                            <p class="text-xs text-gray-500">1000积分</p>
+                                        </div>
+                                        <button class="exchange-btn px-3 py-1 bg-gray-300 text-gray-500 text-sm rounded-lg btn-shadow cursor-not-allowed">
+                                            积分不足
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4 border-t border-gray-100">
+                                <h4 class="text-xs text-gray-500 mb-2">积分规则</h4>
+                                <ul class="text-xs text-gray-600 space-y-1">
+                                    <li>• 发布内容：+10积分/条</li>
+                                    <li>• 内容被点赞：+1积分/次</li>
+                                    <li>• 评论：+2积分/条</li>
+                                    <li>• 参加活动：+20积分/次</li>
+                                    <li>• 内容被采用：+50积分/次</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(pointsModal);
+                    
+                    // 关闭按钮点击事件
+                    pointsModal.querySelector('.close-points-modal').addEventListener('click', function() {
+                        pointsModal.remove();
+                    });
+                    
+                    // 兑换按钮点击事件
+                    const exchangeBtns = pointsModal.querySelectorAll('.exchange-btn:not(.cursor-not-allowed)');
+                    exchangeBtns.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const pointsText = this.closest('.bg-gray-50').querySelector('p.text-xs.text-gray-500').textContent;
+                            const points = parseInt(pointsText);
+                            
+                            if (app.user.points >= points) {
+                                app.user.points -= points;
+                                alert('兑换成功！');
+                                pointsModal.remove();
+                                
+                                // 更新个人中心积分显示
+                                const pointsElement = document.querySelector('#profile-page .text-lg.font-bold.text-primary');
+                                if (pointsElement) pointsElement.textContent = app.user.points;
+                            } else {
+                                alert('积分不足');
+                            }
+                        });
+                    });
                 });
             });
             
@@ -1958,6 +2342,112 @@
                         }
                     }
                 });
+                
+                // 添加内容分类饼图
+                const dataStatisticsTab = document.getElementById('data-statistics');
+                if (dataStatisticsTab) {
+                    // 创建图表容器
+                    const chartContainer = document.createElement('div');
+                    chartContainer.className = 'p-4 border-t border-gray-100';
+                    chartContainer.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-medium text-gray-700">内容分类分布</h4>
+                            <div class="flex items-center space-x-2">
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-primary mr-1"></span>
+                                    <span class="text-xs text-gray-500">邻里日常</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-secondary mr-1"></span>
+                                    <span class="text-xs text-gray-500">社区活动</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-lightOrange mr-1"></span>
+                                    <span class="text-xs text-gray-500">便民通知</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-info mr-1"></span>
+                                    <span class="text-xs text-gray-500">其他</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="h-64">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">数据概览</h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">总内容数</span>
+                                        <span class="text-sm font-medium text-gray-800">3,562</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">平均阅读量</span>
+                                        <span class="text-sm font-medium text-gray-800">128</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">平均互动率</span>
+                                        <span class="text-sm font-medium text-gray-800">32%</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">内容采纳率</span>
+                                        <span class="text-sm font-medium text-gray-800">85%</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">投诉率</span>
+                                        <span class="text-sm font-medium text-gray-800">1.2%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">热门标签</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="text-xs bg-primary bg-opacity-10 text-primary px-2 py-0.5 rounded-full">社区活动</span>
+                                        <span class="text-xs bg-secondary bg-opacity-10 text-secondary px-2 py-0.5 rounded-full">邻里互助</span>
+                                        <span class="text-xs bg-lightOrange bg-opacity-10 text-lightOrange px-2 py-0.5 rounded-full">便民服务</span>
+                                        <span class="text-xs bg-info bg-opacity-10 text-info px-2 py-0.5 rounded-full">社区美景</span>
+                                        <span class="text-xs bg-success bg-opacity-10 text-success px-2 py-0.5 rounded-full">文化传承</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 添加到数据统计页面
+                    dataStatisticsTab.querySelector('.bg-white.rounded-lg.overflow-hidden.card-shadow').appendChild(chartContainer);
+                    
+                    // 创建饼图
+                    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                    const categoryChart = new Chart(categoryCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['邻里日常', '社区活动', '便民通知', '文化传承', '爱心互助', '其他'],
+                            datasets: [{
+                                data: [35, 25, 15, 10, 10, 5],
+                                backgroundColor: [
+                                    '#FF9F43', // 温暖橙色
+                                    '#10AC84', // 生机绿色
+                                    '#fdcb6e', // 浅橙色
+                                    '#0984e3', // 深绿色
+                                    '#27ae60', // 成功
+                                    '#7f8c8d'  // 中性灰
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            cutout: '70%'
+                        }
+                    });
+                }
             }
         });
     </script>
