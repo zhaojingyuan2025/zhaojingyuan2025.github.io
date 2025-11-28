@@ -149,9 +149,14 @@
                             记住我
                         </label>
                     </div>
-                    <a href="#" class="text-sm text-primary hover:text-primary-dark">
-                        忘记密码?
-                    </a>
+                    <div class="flex items-center space-x-4">
+                        <a href="#" class="text-sm text-primary hover:text-primary-dark">
+                            忘记密码?
+                        </a>
+                        <a href="#" id="register-link" class="text-sm text-primary hover:text-primary-dark">
+                            注册
+                        </a>
+                    </div>
                 </div>
                 
                 <button id="login-btn" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-medium btn-shadow btn-hover transition-all duration-300">
@@ -1315,7 +1320,14 @@
                     collections: 36,
                     likes: 89
                 };
-            }
+            },
+            // 用户数据
+            users: [
+                { id: 1, username: 'zhangsan', password: '123456', name: '张三', avatar: '张', role: 'creator', community: '太平街社区', level: '初级工蜂', exp: 650, expToNextLevel: 1000, points: 650, posts: 12, collections: 36, likes: 89 },
+                { id: 2, username: 'lisi', password: '123456', name: '李四', avatar: '李', role: 'resident', community: '新华街社区', level: '小蜜蜂', exp: 150, expToNextLevel: 200, points: 150, posts: 5, collections: 10, likes: 25 },
+                { id: 3, username: 'wangwu', password: '123456', name: '王五', avatar: '王', role: 'creator', community: '解放街社区', level: '初级工蜂', exp: 800, expToNextLevel: 1000, points: 800, posts: 15, collections: 40, likes: 95 },
+                { id: 4, username: 'zhaoliu', password: '123456', name: '赵六', avatar: '赵', role: 'creator', community: '南滩社区', level: '初级工蜂', exp: 950, expToNextLevel: 1000, points: 950, posts: 18, collections: 45, likes: 120 }
+            ],
             user: {
                 id: 1,
                 name: '张阿姨',
@@ -1424,14 +1436,6 @@
                 document.getElementById(pageId).classList.add('active');
             }
             
-            // 示例用户数据
-            const sampleUsers = [
-                { username: 'zhangsan', password: '123456', name: '张三', avatar: '张', role: 'creator', community: '太平街社区', level: '初级工蜂', exp: 650, expToNextLevel: 1000, points: 650, posts: 12, collections: 36, likes: 89 },
-                { username: 'lisi', password: '123456', name: '李四', avatar: '李', role: 'resident', community: '新华街社区', level: '小蜜蜂', exp: 150, expToNextLevel: 200, points: 150, posts: 5, collections: 10, likes: 25 },
-                { username: 'wangwu', password: '123456', name: '王五', avatar: '王', role: 'creator', community: '解放街社区', level: '初级工蜂', exp: 800, expToNextLevel: 1000, points: 800, posts: 15, collections: 40, likes: 95 },
-                { username: 'zhaoliu', password: '123456', name: '赵六', avatar: '赵', role: 'creator', community: '南滩社区', level: '初级工蜂', exp: 950, expToNextLevel: 1000, points: 950, posts: 18, collections: 45, likes: 120 }
-            ];
-            
             // 登录按钮点击事件
             loginBtn.addEventListener('click', function() {
                 const communitySelect = document.getElementById('community');
@@ -1468,7 +1472,7 @@
                 } else {
                     // 普通用户登录
                     // 查找匹配的用户
-                    const matchedUser = sampleUsers.find(user => user.username === username && user.password === password);
+                    const matchedUser = app.users.find(user => user.username === username && user.password === password);
                     
                     if (matchedUser) {
                         // 登录成功，更新用户信息
@@ -1487,6 +1491,179 @@
                     }
                 }
             });
+            
+            // 注册按钮点击事件
+            const registerLink = document.getElementById('register-link');
+            if (registerLink) {
+                registerLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showRegisterModal();
+                });
+            }
+            
+            // 显示注册弹窗
+            function showRegisterModal() {
+                // 创建弹窗容器
+                const modalContainer = document.createElement('div');
+                modalContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modalContainer.id = 'register-modal';
+                
+                // 弹窗内容
+                modalContainer.innerHTML = `
+                    <div class="bg-white rounded-lg w-3/4 max-w-sm p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium text-gray-800">用户注册</h3>
+                            <button id="close-register-modal" class="text-gray-400">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="mb-4">
+                            <label for="register-username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                            <input type="text" id="register-username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入用户名">
+                        </div>
+                        <div class="mb-4">
+                            <label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                            <input type="password" id="register-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入密码">
+                        </div>
+                        <div class="mb-4">
+                            <label for="register-confirm-password" class="block text-sm font-medium text-gray-700 mb-1">确认密码</label>
+                            <input type="password" id="register-confirm-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请再次输入密码">
+                        </div>
+                        <div class="mb-4">
+                            <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">真实姓名</label>
+                            <input type="text" id="register-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入您的真实姓名">
+                        </div>
+                        <div class="mb-6">
+                            <label for="register-community" class="block text-sm font-medium text-gray-700 mb-1">所在社区</label>
+                            <select id="register-community" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                <option value="">请选择您所在的社区</option>
+                                <!-- 新原街道社区 -->
+                                <option value="1">太平街社区</option>
+                                <option value="2">新华街社区</option>
+                                <option value="3">解放街社区</option>
+                                <option value="4">南滩社区</option>
+                                <option value="5">桥南社区</option>
+                                <option value="6">铁路社区</option>
+                                <option value="7">永兴社区</option>
+                                <!-- 北城街道社区 -->
+                                <option value="8">城西社区</option>
+                                <option value="9">永康路社区</option>
+                                <option value="10">京原路社区</option>
+                                <option value="11">永兴路社区</option>
+                                <option value="12">平安大街社区</option>
+                                <!-- 南城街道社区 -->
+                                <option value="13">建设街社区</option>
+                                <option value="14">教育路社区</option>
+                                <option value="15">体育路社区</option>
+                                <!-- 吉祥街道社区 -->
+                                <option value="16">吉祥花园社区</option>
+                                <option value="17">沙河桥社区</option>
+                                <!-- 轩煤矿区街道社区 -->
+                                <option value="18">机关社区</option>
+                                <option value="19">焦家寨矿社区</option>
+                                <option value="20">刘家梁矿社区</option>
+                                <option value="21">六亩地矿社区</option>
+                                <option value="22">黄甲堡矿社区</option>
+                            </select>
+                        </div>
+                        <button id="register-btn" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-medium btn-shadow btn-hover transition-all duration-300">
+                            注册
+                        </button>
+                    </div>
+                `;
+                
+                document.body.appendChild(modalContainer);
+                
+                // 关闭弹窗按钮点击事件
+                document.getElementById('close-register-modal').addEventListener('click', function() {
+                    modalContainer.remove();
+                });
+                
+                // 注册按钮点击事件
+                document.getElementById('register-btn').addEventListener('click', function() {
+                    const username = document.getElementById('register-username').value.trim();
+                    const password = document.getElementById('register-password').value.trim();
+                    const confirmPassword = document.getElementById('register-confirm-password').value.trim();
+                    const name = document.getElementById('register-name').value.trim();
+                    const communitySelect = document.getElementById('register-community');
+                    const selectedCommunity = communitySelect.options[communitySelect.selectedIndex].text;
+                    
+                    // 表单验证
+                    if (!username) {
+                        alert('请输入用户名');
+                        document.getElementById('register-username').focus();
+                        return;
+                    }
+                    
+                    if (!password) {
+                        alert('请输入密码');
+                        document.getElementById('register-password').focus();
+                        return;
+                    }
+                    
+                    if (password.length < 6) {
+                        alert('密码长度不能少于6位');
+                        document.getElementById('register-password').focus();
+                        return;
+                    }
+                    
+                    if (password !== confirmPassword) {
+                        alert('两次输入的密码不一致');
+                        document.getElementById('register-confirm-password').focus();
+                        return;
+                    }
+                    
+                    if (!name) {
+                        alert('请输入真实姓名');
+                        document.getElementById('register-name').focus();
+                        return;
+                    }
+                    
+                    if (!selectedCommunity || selectedCommunity === '请选择您所在的社区') {
+                        alert('请选择您所在的社区');
+                        communitySelect.focus();
+                        return;
+                    }
+                    
+                    // 检查用户名是否已存在
+                    const usernameExists = app.users.some(user => user.username === username);
+                    if (usernameExists) {
+                        alert('用户名已存在，请选择其他用户名');
+                        document.getElementById('register-username').focus();
+                        return;
+                    }
+                    
+                    // 创建新用户
+                    const newUser = {
+                        id: app.users.length + 1,
+                        username: username,
+                        password: password,
+                        name: name,
+                        avatar: name.charAt(0),
+                        role: 'resident', // 默认角色为普通居民
+                        community: selectedCommunity,
+                        level: '小蜜蜂',
+                        exp: 0,
+                        expToNextLevel: 200,
+                        points: 0,
+                        posts: 0,
+                        collections: 0,
+                        likes: 0
+                    };
+                    
+                    // 添加新用户到用户列表
+                    app.users.push(newUser);
+                    
+                    // 注册成功
+                    alert('注册成功！');
+                    
+                    // 关闭注册弹窗
+                    modalContainer.remove();
+                    
+                    // 自动填充用户名
+                    document.getElementById('username').value = username;
+                });
+            }
             
             // 管理员登录弹窗
             function showAdminLoginModal(rememberMe = false) {
