@@ -91,7 +91,7 @@
     <div id="app" class="max-w-md mx-auto bg-white min-h-screen relative">
         <!-- 登录页 -->
         <div id="login-page" class="page active min-h-screen flex flex-col items-center justify-center p-6">
-            <div class="w-80 h-80 mb-8">
+            <div class="w-48 h-48 mb-8">
                 <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/189fb8d007c64072bbdfd4a23ecd3e9c.png~tplv-a9rns2rl98-24:720:720.png?rcl=20251126220915DD8B33C50CD38D0947E7&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1764770956&x-signature=twEFES7WGPso2S%2FHNUoIvwBJ8Hg%3D" alt="社区鲜事-小蜜蜂" class="w-full h-full object-contain">
             </div>
             <h1 class="text-3xl font-bold text-darkGreen mb-2 text-center">社区鲜事-小蜜蜂</h1>
@@ -132,20 +132,8 @@
                     </select>
                 </div>
                 
-                <div class="mb-8">
-                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">手机号码</label>
-                    <div class="flex">
-                        <input type="tel" id="phone" placeholder="请输入手机号码" class="w-full px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                        <button id="get-code-btn" class="bg-primary text-white px-4 py-2 rounded-r-lg hover:bg-opacity-90 btn-shadow btn-hover">获取验证码</button>
-                    </div>
-                </div>
-                
-                <div class="mb-10">
-                    <label for="verification" class="block text-sm font-medium text-gray-700 mb-1">验证码</label>
-                    <input type="text" id="verification" placeholder="请输入验证码" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                </div>
-                
-                <button id="login-btn" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-medium btn-shadow btn-hover transition-all duration-300">
+                <button id="login-btn" open-type="getUserInfo" bindgetuserinfo="onGetUserInfo" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-medium btn-shadow btn-hover transition-all duration-300 flex items-center justify-center">
+                    <i class="fa fa-weixin text-xl mr-2"></i>
                     微信授权登录
                 </button>
                 
@@ -793,7 +781,7 @@
                 
                 <!-- 退出登录 -->
                 <div class="mt-6 mb-20 px-4">
-                    <button class="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium">
+                    <button id="logout-btn" class="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
                         退出登录
                     </button>
                 </div>
@@ -1264,6 +1252,49 @@
     <script>
         // 全局变量
         const app = {
+            // 检查是否记住登录状态
+            checkRememberedLogin() {
+                const rememberedUser = localStorage.getItem('rememberedUser');
+                if (rememberedUser) {
+                    try {
+                        const userData = JSON.parse(rememberedUser);
+                        app.user = userData;
+                        return true;
+                    } catch (e) {
+                        console.error('Failed to parse remembered user data:', e);
+                        localStorage.removeItem('rememberedUser');
+                    }
+                }
+                return false;
+            },
+            
+            // 保存登录状态
+            saveLoginState(remember = false) {
+                if (remember) {
+                    localStorage.setItem('rememberedUser', JSON.stringify(app.user));
+                } else {
+                    localStorage.removeItem('rememberedUser');
+                }
+            },
+            
+            // 清除登录状态
+            clearLoginState() {
+                localStorage.removeItem('rememberedUser');
+                app.user = {
+                    id: 1,
+                    name: '张阿姨',
+                    avatar: '张',
+                    role: 'resident', // resident, creator, admin
+                    community: '阳光花园社区',
+                    level: '初级工蜂',
+                    exp: 650,
+                    expToNextLevel: 1000,
+                    points: 650,
+                    posts: 12,
+                    collections: 36,
+                    likes: 89
+                };
+            }
             user: {
                 id: 1,
                 name: '张阿姨',
@@ -1372,78 +1403,141 @@
                 document.getElementById(pageId).classList.add('active');
             }
             
-            // 获取验证码按钮点击事件
-            const getCodeBtn = document.getElementById('get-code-btn');
-            getCodeBtn.addEventListener('click', function() {
-                const phoneInput = document.getElementById('phone');
-                const phone = phoneInput.value.trim();
-                
-                if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
-                    alert('请输入正确的手机号码');
+            
+            
+            // 微信授权登录事件处理函数
+            window.onGetUserInfo = function(e) {
+                if (!e.detail.userInfo) {
+                    alert('请授权获取用户信息');
                     return;
                 }
                 
-                // 模拟发送验证码
-                alert('验证码已发送，请注意查收');
-                
-                // 倒计时功能
-                let countdown = 60;
-                getCodeBtn.disabled = true;
-                getCodeBtn.textContent = `${countdown}s后重新获取`;
-                
-                const timer = setInterval(() => {
-                    countdown--;
-                    getCodeBtn.textContent = `${countdown}s后重新获取`;
-                    
-                    if (countdown <= 0) {
-                        clearInterval(timer);
-                        getCodeBtn.disabled = false;
-                        getCodeBtn.textContent = '获取验证码';
-                    }
-                }, 1000);
-            });
-            
-            // 登录按钮点击事件
-            loginBtn.addEventListener('click', function() {
                 const communitySelect = document.getElementById('community');
                 const selectedCommunity = communitySelect.options[communitySelect.selectedIndex].text;
-                const verificationInput = document.getElementById('verification');
-                const verificationCode = verificationInput.value.trim();
                 
+                // 表单验证
                 if (!selectedCommunity || selectedCommunity === '请选择您所在的社区') {
                     alert('请选择您所在的社区');
-                    return;
-                }
-                
-                if (!verificationCode) {
-                    alert('请输入验证码');
-                    return;
-                }
-                
-                // 简单验证验证码格式（6位数字）
-                if (!/^\d{6}$/.test(verificationCode)) {
-                    alert('请输入正确的6位验证码');
+                    communitySelect.focus();
                     return;
                 }
                 
                 // 更新用户社区信息
                 app.user.community = selectedCommunity;
                 
-                // 检查是否为管理员账户
-                const phoneInput = document.getElementById('phone');
-                const phone = phoneInput.value.trim();
+                // 显示加载中提示
+                wx.showLoading({
+                    title: '登录中...',
+                    mask: true
+                });
                 
-                if (phone === 'admin') {
-                    // 显示管理员登录弹窗
-                    showAdminLoginModal();
-                } else {
-                    // 普通用户登录
-                    showPage('home-page');
+                // 调用微信登录API获取code
+                wx.login({
+                    success: function(loginRes) {
+                        if (loginRes.code) {
+                            // 构造登录数据
+                            const loginData = {
+                                code: loginRes.code,
+                                userInfo: e.detail.userInfo,
+                                community: selectedCommunity
+                            };
+                            
+                            // 模拟调用后端接口
+                            setTimeout(() => {
+                                wx.hideLoading();
+                                
+                                // 模拟后端返回的用户数据
+                                const userData = {
+                                    id: Math.floor(Math.random() * 1000000),
+                                    name: e.detail.userInfo.nickName,
+                                    avatar: e.detail.userInfo.avatarUrl,
+                                    role: 'creator', // 默认角色为创作者
+                                    community: selectedCommunity,
+                                    level: '小蜜蜂',
+                                    exp: 0,
+                                    expToNextLevel: 200,
+                                    points: 0,
+                                    posts: 0,
+                                    collections: 0,
+                                    likes: 0
+                                };
+                                
+                                // 更新用户信息
+                                app.user = userData;
+                                
+                                // 保存登录状态
+                                app.saveLoginState(true);
+                                
+                                // 跳转到首页
+                                showPage('home-page');
+                                
+                                // 显示登录成功提示
+                                wx.showToast({
+                                    title: '登录成功',
+                                    icon: 'success',
+                                    duration: 1500
+                                });
+                            }, 1000);
+                            
+                            // 真实环境下应该调用后端接口
+                            /*
+                            wx.request({
+                                url: 'https://your-server-domain.com/api/wechat/login',
+                                method: 'POST',
+                                data: loginData,
+                                success: function(response) {
+                                    wx.hideLoading();
+                                    
+                                    if (response.data.success) {
+                                        // 登录成功，保存用户信息
+                                        app.user = response.data.user;
+                                        
+                                        // 保存登录状态
+                                        app.saveLoginState(true);
+                                        
+                                        // 跳转到首页
+                                        showPage('home-page');
+                                        
+                                        // 显示登录成功提示
+                                        wx.showToast({
+                                            title: '登录成功',
+                                            icon: 'success',
+                                            duration: 1500
+                                        });
+                                    } else {
+                                        alert('登录失败：' + response.data.message);
+                                    }
+                                },
+                                fail: function() {
+                                    wx.hideLoading();
+                                    alert('网络请求失败，请重试');
+                                }
+                            });
+                            */
+                        } else {
+                            wx.hideLoading();
+                            alert('登录失败：' + loginRes.errMsg);
+                        }
+                    },
+                    fail: function() {
+                        wx.hideLoading();
+                        alert('微信登录接口调用失败');
+                    }
+                });
+            };
+            
+            // 登录按钮点击事件
+            loginBtn.addEventListener('click', function() {
+                // 在微信小程序环境中，open-type="getUserInfo"会自动触发授权
+                // 这里主要用于处理H5环境下的兼容性
+                if (!window.wx) {
+                    alert('请在微信小程序中打开');
+                    return;
                 }
             });
             
             // 管理员登录弹窗
-            function showAdminLoginModal() {
+            function showAdminLoginModal(rememberMe = false) {
                 // 创建弹窗容器
                 const modalContainer = document.createElement('div');
                 modalContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
@@ -1494,6 +1588,9 @@
                         app.user.exp = 15000;
                         app.user.expToNextLevel = 15000;
                         app.user.points = 15000;
+                        
+                        // 保存登录状态
+                        app.saveLoginState(rememberMe);
                         
                         modalContainer.remove();
                         showPage('home-page');
@@ -2309,6 +2406,36 @@
                     if (collectionsElement) collectionsElement.textContent = app.user.collections;
                     if (likesElement) likesElement.textContent = app.user.likes;
                 }
+            }
+            
+            // 检查记住的登录状态
+            if (app.checkRememberedLogin()) {
+                // 自动登录
+                showPage('home-page');
+                
+                // 如果是管理员，更新UI
+                if (app.user.role === 'admin') {
+                    updateAdminUI();
+                }
+            }
+            
+            // 退出登录按钮点击事件
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (confirm('确定要退出登录吗？')) {
+                        // 清除登录状态
+                        app.clearLoginState();
+                        
+                        // 返回登录页面
+                        showPage('login-page');
+                        
+                        // 重置登录表单
+                        document.getElementById('community').value = '';
+                        document.getElementById('phone').value = '';
+                        document.getElementById('verification').value = '';
+                    }
+                });
             }
             
             // 初始化图表
