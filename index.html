@@ -461,12 +461,18 @@
                 <div class="mb-6">
                     <h3 class="text-sm font-medium text-gray-700 mb-3">添加图片或视频</h3>
                     <div class="grid grid-cols-3 gap-3">
-                        <div class="upload-item bg-gray-100 rounded-lg aspect-square flex items-center justify-center border-2 border-dashed border-gray-300">
+                        <div class="upload-item bg-gray-100 rounded-lg aspect-square flex items-center justify-center border-2 border-dashed border-gray-300 cursor-pointer hover:border-primary transition-colors">
+                            <input type="file" class="hidden" accept="image/*" multiple>
                             <i class="fa fa-plus text-gray-400 text-xl"></i>
                         </div>
-                        <div class="upload-item bg-gray-100 rounded-lg aspect-square flex items-center justify-center border-2 border-dashed border-gray-300">
+                        <div class="upload-item bg-gray-100 rounded-lg aspect-square flex items-center justify-center border-2 border-dashed border-gray-300 cursor-pointer hover:border-primary transition-colors">
+                            <input type="file" class="hidden" accept="video/*">
                             <i class="fa fa-video-camera text-gray-400 text-xl"></i>
                         </div>
+                    </div>
+                    <div id="preview-container" class="grid grid-cols-3 gap-3 mt-3 hidden">
+                        <h4 class="text-xs text-gray-500 col-span-3 mb-1">预览</h4>
+                        <!-- 预览图片将在这里动态添加 -->
                     </div>
                 </div>
                 
@@ -499,34 +505,50 @@
                 <!-- 标签输入 -->
                 <div class="mb-6">
                     <h3 class="text-sm font-medium text-gray-700 mb-3">添加标签</h3>
-                    <div class="flex flex-wrap gap-2 mb-3">
+                    <div id="selected-tags" class="flex flex-wrap gap-2 mb-3">
                         <div class="tag-item bg-gray-100 text-gray-700 rounded-full text-sm px-3 py-1 flex items-center">
                             社区生活
-                            <i class="fa fa-times ml-1 text-xs text-gray-400"></i>
+                            <i class="fa fa-times ml-1 text-xs text-gray-400 cursor-pointer tag-remove"></i>
                         </div>
                         <div class="tag-item bg-gray-100 text-gray-700 rounded-full text-sm px-3 py-1 flex items-center">
                             邻里互助
-                            <i class="fa fa-times ml-1 text-xs text-gray-400"></i>
+                            <i class="fa fa-times ml-1 text-xs text-gray-400 cursor-pointer tag-remove"></i>
                         </div>
                     </div>
                     <div class="relative">
-                        <input type="text" placeholder="输入标签，按回车添加" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                        <button class="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary">
+                        <input type="text" id="tag-input" placeholder="输入标签，按回车添加" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button id="add-tag-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary">
                             <i class="fa fa-plus-circle"></i>
                         </button>
                     </div>
-                    <div class="mt-2">
-                        <p class="text-xs text-gray-500">AI推荐标签：</p>
-                        <div class="flex flex-wrap gap-2 mt-1">
-                            <button class="text-xs text-primary bg-primary bg-opacity-10 px-2 py-0.5 rounded-full">
+                    
+                    <!-- AI智能标签推荐 -->
+                    <div class="mt-4">
+                        <div class="flex items-center mb-1">
+                            <p class="text-xs text-gray-500">AI推荐标签：</p>
+                            <button id="refresh-ai-tags" class="ml-2 text-xs text-primary flex items-center">
+                                <i class="fa fa-refresh mr-1"></i>
+                                重新生成
+                            </button>
+                        </div>
+                        <div id="ai-tags-container" class="flex flex-wrap gap-2 mt-1">
+                            <button class="ai-tag-btn text-xs text-primary bg-primary bg-opacity-10 px-2 py-0.5 rounded-full">
                                 社区美景
                             </button>
-                            <button class="text-xs text-primary bg-primary bg-opacity-10 px-2 py-0.5 rounded-full">
+                            <button class="ai-tag-btn text-xs text-primary bg-primary bg-opacity-10 px-2 py-0.5 rounded-full">
                                 邻里情深
                             </button>
-                            <button class="text-xs text-primary bg-primary bg-opacity-10 px-2 py-0.5 rounded-full">
+                            <button class="ai-tag-btn text-xs text-primary bg-primary bg-opacity-10 px-2 py-0.5 rounded-full">
                                 生活分享
                             </button>
+                        </div>
+                        
+                        <!-- AI标签加载动画 -->
+                        <div id="ai-tags-loading" class="flex items-center gap-2 mt-1 hidden">
+                            <div class="w-2 h-2 rounded-full bg-primary animate-bounce"></div>
+                            <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay: 0.2s"></div>
+                            <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay: 0.4s"></div>
+                            <span class="text-xs text-gray-500">AI正在分析内容...</span>
                         </div>
                     </div>
                 </div>
@@ -580,22 +602,53 @@
             <div class="px-4 -mt-10">
                 <div class="bg-white rounded-lg p-4 card-shadow">
                     <div class="flex items-center">
-                        <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center mr-4">
+                        <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center mr-4 relative">
                             <span class="text-xl font-medium">张</span>
+                            <div class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-secondary border-2 border-white flex items-center justify-center">
+                                <i class="fa fa-star text-white text-xs"></i>
+                            </div>
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center">
                                 <h3 class="text-lg font-medium text-gray-800">张阿姨</h3>
                                 <span class="ml-2 bg-primary text-white text-xs px-1.5 py-0.5 rounded">普通居民</span>
                             </div>
-                            <p class="text-sm text-gray-500">阳光花园社区 · 初级工蜂</p>
+                            <p class="text-sm text-gray-500">阳光花园社区 · <span class="text-primary">初级工蜂</span></p>
                             <div class="flex items-center mt-2">
                                 <div class="flex-1 flex items-center">
                                     <div class="w-full bg-gray-200 rounded-full h-2">
-                                        <div class="bg-primary h-2 rounded-full" style="width: 65%"></div>
+                                        <div class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full" style="width: 65%"></div>
                                     </div>
                                     <span class="ml-2 text-xs text-gray-500">650/1000</span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 等级特权 -->
+                    <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-sm font-medium text-gray-700">等级特权</h4>
+                            <button class="text-xs text-primary">查看全部</button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-white p-2 rounded-lg text-xs">
+                                <div class="w-6 h-6 mx-auto rounded-full bg-primary bg-opacity-10 flex items-center justify-center mb-1">
+                                    <i class="fa fa-image text-primary text-xs"></i>
+                                </div>
+                                <p class="text-gray-600">每日可发<span class="text-primary font-medium">10</span>条</p>
+                            </div>
+                            <div class="bg-white p-2 rounded-lg text-xs">
+                                <div class="w-6 h-6 mx-auto rounded-full bg-secondary bg-opacity-10 flex items-center justify-center mb-1">
+                                    <i class="fa fa-star text-secondary text-xs"></i>
+                                </div>
+                                <p class="text-gray-600">内容优先审核</p>
+                            </div>
+                            <div class="bg-white p-2 rounded-lg text-xs">
+                                <div class="w-6 h-6 mx-auto rounded-full bg-lightOrange bg-opacity-10 flex items-center justify-center mb-1">
+                                    <i class="fa fa-gift text-lightOrange text-xs"></i>
+                                </div>
+                                <p class="text-gray-600">每月<span class="text-primary font-medium">2</span>次抽奖</p>
                             </div>
                         </div>
                     </div>
@@ -726,7 +779,7 @@
                 </div>
                 
                 <!-- 管理员入口 (仅管理员可见) -->
-                <div class="mt-4 bg-white rounded-lg overflow-hidden card-shadow">
+                <div class="mt-4 bg-white rounded-lg overflow-hidden card-shadow hidden">
                     <div class="flex items-center justify-between p-4">
                         <div class="flex items-center">
                             <div class="w-8 h-8 rounded-full bg-error bg-opacity-10 flex items-center justify-center mr-3">
@@ -1209,6 +1262,57 @@
     </div>
 
     <script>
+        // 全局变量
+        const app = {
+            user: {
+                id: 1,
+                name: '张阿姨',
+                avatar: '张',
+                role: 'resident', // resident, creator, admin
+                community: '阳光花园社区',
+                level: '初级工蜂',
+                exp: 650,
+                expToNextLevel: 1000,
+                points: 650,
+                posts: 12,
+                collections: 36,
+                likes: 89
+            },
+            aiTags: [
+                '社区美景', '邻里情深', '生活分享',
+                '社区活动', '便民服务', '文化传承',
+                '爱心互助', '节日庆典', '社区公告'
+            ],
+            userLevels: [
+                { name: '小蜜蜂', exp: 200, privileges: ['每日可发5条', '基础社区服务'] },
+                { name: '初级工蜂', exp: 1000, privileges: ['每日可发10条', '内容优先审核', '每月2次抽奖'] },
+                { name: '活跃工蜂', exp: 3000, privileges: ['每日可发15条', '内容优先审核', '每月4次抽奖', '专属徽章'] },
+                { name: '精英工蜂', exp: 5000, privileges: ['每日可发20条', '内容优先审核', '每月6次抽奖', '专属徽章', '活动优先参与'] },
+                { name: '社区蜂王', exp: 10000, privileges: ['无限发布', '内容优先审核', '每月10次抽奖', '专属徽章', '活动优先参与', '社区事务投票权'] }
+            ],
+            // 获取用户等级
+            getUserLevel(exp) {
+                for (let i = this.userLevels.length - 1; i >= 0; i--) {
+                    if (exp >= this.userLevels[i].exp) {
+                        return this.userLevels[i];
+                    }
+                }
+                return this.userLevels[0];
+            },
+            // 生成随机AI标签
+            generateRandomAITags(count = 3) {
+                const shuffled = [...this.aiTags].sort(() => 0.5 - Math.random());
+                return shuffled.slice(0, count);
+            },
+            // 检查用户权限
+            checkPermission(requiredRole) {
+                const roles = ['resident', 'creator', 'admin'];
+                const userRoleIndex = roles.indexOf(this.user.role);
+                const requiredRoleIndex = roles.indexOf(requiredRole);
+                return userRoleIndex >= requiredRoleIndex;
+            }
+        };
+        
         // 页面切换功能
         document.addEventListener('DOMContentLoaded', function() {
             // 页面元素
@@ -1237,6 +1341,21 @@
             const adminTabs = document.querySelectorAll('.admin-tab');
             const adminContents = document.querySelectorAll('.admin-content');
             
+            // 上传相关元素
+            const uploadItems = document.querySelectorAll('.upload-item');
+            const fileInputs = document.querySelectorAll('.upload-item input[type="file"]');
+            const previewContainer = document.getElementById('preview-container');
+            
+            // 标签相关元素
+            const tagInput = document.getElementById('tag-input');
+            const addTagBtn = document.getElementById('add-tag-btn');
+            const selectedTags = document.getElementById('selected-tags');
+            const tagRemoveBtns = document.querySelectorAll('.tag-remove');
+            const refreshAiTagsBtn = document.getElementById('refresh-ai-tags');
+            const aiTagsContainer = document.getElementById('ai-tags-container');
+            const aiTagsLoading = document.getElementById('ai-tags-loading');
+            const aiTagBtns = document.querySelectorAll('.ai-tag-btn');
+            
             // 上传进度相关
             const uploadProgress = document.getElementById('upload-progress');
             const progressBar = document.getElementById('progress-bar');
@@ -1255,8 +1374,93 @@
             
             // 登录按钮点击事件
             loginBtn.addEventListener('click', function() {
-                showPage('home-page');
+                const communitySelect = document.getElementById('community');
+                const selectedCommunity = communitySelect.options[communitySelect.selectedIndex].text;
+                
+                if (!selectedCommunity || selectedCommunity === '请选择您所在的社区') {
+                    alert('请选择您所在的社区');
+                    return;
+                }
+                
+                // 更新用户社区信息
+                app.user.community = selectedCommunity;
+                
+                // 检查是否为管理员账户
+                const phoneInput = document.getElementById('phone');
+                const phone = phoneInput.value.trim();
+                
+                if (phone === 'admin') {
+                    // 显示管理员登录弹窗
+                    showAdminLoginModal();
+                } else {
+                    // 普通用户登录
+                    showPage('home-page');
+                }
             });
+            
+            // 管理员登录弹窗
+            function showAdminLoginModal() {
+                // 创建弹窗容器
+                const modalContainer = document.createElement('div');
+                modalContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modalContainer.id = 'admin-login-modal';
+                
+                // 弹窗内容
+                modalContainer.innerHTML = `
+                    <div class="bg-white rounded-lg w-3/4 max-w-sm p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium text-gray-800">管理员登录</h3>
+                            <button id="close-admin-modal" class="text-gray-400">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="mb-4">
+                            <label for="admin-username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                            <input type="text" id="admin-username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入管理员用户名">
+                        </div>
+                        <div class="mb-6">
+                            <label for="admin-password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                            <input type="password" id="admin-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入管理员密码">
+                        </div>
+                        <button id="admin-login-btn" class="w-full bg-error text-white py-3 rounded-lg font-medium btn-shadow btn-hover transition-all duration-300">
+                            登录
+                        </button>
+                    </div>
+                `;
+                
+                document.body.appendChild(modalContainer);
+                
+                // 关闭弹窗按钮点击事件
+                document.getElementById('close-admin-modal').addEventListener('click', function() {
+                    modalContainer.remove();
+                });
+                
+                // 管理员登录按钮点击事件
+                document.getElementById('admin-login-btn').addEventListener('click', function() {
+                    const username = document.getElementById('admin-username').value;
+                    const password = document.getElementById('admin-password').value;
+                    
+                    // 验证管理员账户
+                    if (username === 'admin' && password === 'YuanPing2025!') {
+                        // 更新用户角色为管理员
+                        app.user.role = 'admin';
+                        app.user.name = '社区管理员';
+                        app.user.avatar = '管';
+                        app.user.level = '社区蜂王';
+                        app.user.exp = 15000;
+                        app.user.expToNextLevel = 15000;
+                        app.user.points = 15000;
+                        
+                        modalContainer.remove();
+                        showPage('home-page');
+                        
+                        // 更新UI以反映管理员权限
+                        updateAdminUI();
+                    } else {
+                        alert('用户名或密码错误');
+                    }
+                });
+            }
             
             // 底部导航按钮点击事件
             navBtns.forEach((btn, index) => {
@@ -1286,6 +1490,30 @@
             
             // 提交发布按钮点击事件
             submitPublishBtn.addEventListener('click', function() {
+                // 检查内容是否为空
+                const textarea = document.querySelector('#publish-page textarea');
+                const content = textarea.value.trim();
+                
+                if (!content && previewContainer.classList.contains('hidden')) {
+                    alert('请输入内容或上传图片/视频');
+                    return;
+                }
+                
+                // 检查用户等级权限
+                const userLevel = app.getUserLevel(app.user.exp);
+                const maxPostsPerDay = userLevel.name === '社区蜂王' ? Infinity : 
+                                      userLevel.name === '精英工蜂' ? 20 :
+                                      userLevel.name === '活跃工蜂' ? 15 :
+                                      userLevel.name === '初级工蜂' ? 10 : 5;
+                
+                // 模拟已发布数量
+                const publishedToday = Math.floor(Math.random() * 8) + 1;
+                
+                if (publishedToday >= maxPostsPerDay) {
+                    alert(`您今天已发布${publishedToday}条内容，达到每日发布上限${maxPostsPerDay}条`);
+                    return;
+                }
+                
                 // 显示上传进度
                 uploadProgress.classList.remove('hidden');
                 
@@ -1302,15 +1530,74 @@
                             uploadProgress.classList.add('hidden');
                             showPage('home-page');
                             
-                            // 显示审核结果通知
-                            reviewNotification.classList.remove('hidden');
-                            setTimeout(() => {
-                                reviewNotification.classList.add('hidden');
-                            }, 3000);
+                            // 增加积分和经验
+                            app.user.points += 10;
+                            app.user.exp += 10;
+                            app.user.posts += 1;
+                            
+                            // 检查是否升级
+                            const newLevel = app.getUserLevel(app.user.exp);
+                            if (newLevel.name !== app.user.level) {
+                                app.user.level = newLevel.name;
+                                app.user.expToNextLevel = app.userLevels.find(level => level.name === newLevel.name).exp;
+                                
+                                // 显示升级通知
+                                showLevelUpNotification(newLevel.name);
+                            } else {
+                                // 显示审核结果通知
+                                reviewNotification.classList.remove('hidden');
+                                setTimeout(() => {
+                                    reviewNotification.classList.add('hidden');
+                                }, 3000);
+                            }
+                            
+                            // 清空发布内容
+                            textarea.value = '';
+                            previewContainer.classList.add('hidden');
+                            previewContainer.innerHTML = '<h4 class="text-xs text-gray-500 col-span-3 mb-1">预览</h4>';
+                            selectedTags.innerHTML = `
+                                <div class="tag-item bg-gray-100 text-gray-700 rounded-full text-sm px-3 py-1 flex items-center">
+                                    社区生活
+                                    <i class="fa fa-times ml-1 text-xs text-gray-400 cursor-pointer tag-remove"></i>
+                                </div>
+                                <div class="tag-item bg-gray-100 text-gray-700 rounded-full text-sm px-3 py-1 flex items-center">
+                                    邻里互助
+                                    <i class="fa fa-times ml-1 text-xs text-gray-400 cursor-pointer tag-remove"></i>
+                                </div>
+                            `;
                         }, 500);
                     }
                 }, 100);
             });
+            
+            // 显示升级通知
+            function showLevelUpNotification(newLevel) {
+                const levelUpNotification = document.createElement('div');
+                levelUpNotification.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 w-3/4 max-w-sm z-50';
+                levelUpNotification.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-3">
+                            <i class="fa fa-level-up text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800">恭喜升级到${newLevel}!</h3>
+                            <p class="text-sm text-gray-500">获得50积分奖励</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(levelUpNotification);
+                
+                // 添加动画效果
+                levelUpNotification.classList.add('animate-bounce-slow');
+                
+                setTimeout(() => {
+                    levelUpNotification.classList.remove('animate-bounce-slow');
+                    setTimeout(() => {
+                        levelUpNotification.remove();
+                    }, 2000);
+                }, 3000);
+            }
             
             // 返回首页按钮点击事件
             backToHomeBtn.addEventListener('click', function() {
@@ -1375,6 +1662,13 @@
                         btn.classList.add('text-primary');
                         countSpan.textContent = count + 1;
                         icon.classList.add('like-animation');
+                        
+                        // 增加积分
+                        if (this.closest('.bg-white.rounded-lg.overflow-hidden.card-shadow')) {
+                            app.user.points += 1;
+                            app.user.likes += 1;
+                        }
+                        
                         setTimeout(() => {
                             icon.classList.remove('like-animation');
                         }, 500);
@@ -1383,9 +1677,163 @@
                         icon.classList.add('fa-heart-o');
                         btn.classList.remove('text-primary');
                         countSpan.textContent = count - 1;
+                        
+                        // 减少积分
+                        if (this.closest('.bg-white.rounded-lg.overflow-hidden.card-shadow')) {
+                            app.user.points = Math.max(0, app.user.points - 1);
+                            app.user.likes = Math.max(0, app.user.likes - 1);
+                        }
                     }
                 });
             });
+            
+            // 上传区域点击事件
+            uploadItems.forEach((item, index) => {
+                item.addEventListener('click', function() {
+                    fileInputs[index].click();
+                });
+            });
+            
+            // 文件选择事件
+            fileInputs.forEach(input => {
+                input.addEventListener('change', function(e) {
+                    const files = e.target.files;
+                    if (files.length > 0) {
+                        previewContainer.classList.remove('hidden');
+                        previewContainer.innerHTML = '<h4 class="text-xs text-gray-500 col-span-3 mb-1">预览</h4>';
+                        
+                        // 显示AI标签加载动画
+                        aiTagsLoading.classList.remove('hidden');
+                        aiTagsContainer.classList.add('hidden');
+                        
+                        // 模拟AI分析延迟
+                        setTimeout(() => {
+                            // 隐藏加载动画，显示AI标签
+                            aiTagsLoading.classList.add('hidden');
+                            aiTagsContainer.classList.remove('hidden');
+                            
+                            // 生成新的AI标签
+                            generateNewAITags();
+                        }, 1500);
+                        
+                        // 显示预览
+                        for (let i = 0; i < Math.min(files.length, 3); i++) {
+                            const file = files[i];
+                            const reader = new FileReader();
+                            
+                            reader.onload = function(e) {
+                                const previewItem = document.createElement('div');
+                                previewItem.className = 'relative';
+                                
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.className = 'w-full h-full object-cover rounded-lg';
+                                
+                                const removeBtn = document.createElement('button');
+                                removeBtn.className = 'absolute top-1 right-1 w-5 h-5 rounded-full bg-black bg-opacity-50 text-white flex items-center justify-center';
+                                removeBtn.innerHTML = '<i class="fa fa-times text-xs"></i>';
+                                removeBtn.onclick = function() {
+                                    previewItem.remove();
+                                    if (previewContainer.children.length <= 1) {
+                                        previewContainer.classList.add('hidden');
+                                    }
+                                };
+                                
+                                previewItem.appendChild(img);
+                                previewItem.appendChild(removeBtn);
+                                previewContainer.appendChild(previewItem);
+                            };
+                            
+                            if (file.type.startsWith('image/')) {
+                                reader.readAsDataURL(file);
+                            } else if (file.type.startsWith('video/')) {
+                                reader.readAsDataURL(file);
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // 添加标签按钮点击事件
+            addTagBtn.addEventListener('click', addTag);
+            
+            // 标签输入框回车事件
+            tagInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTag();
+                }
+            });
+            
+            // 删除标签按钮点击事件
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('tag-remove')) {
+                    e.target.parentElement.remove();
+                }
+            });
+            
+            // 刷新AI标签按钮点击事件
+            refreshAiTagsBtn.addEventListener('click', function() {
+                // 显示加载动画，隐藏标签
+                aiTagsLoading.classList.remove('hidden');
+                aiTagsContainer.classList.add('hidden');
+                
+                // 模拟AI分析延迟
+                setTimeout(() => {
+                    // 隐藏加载动画，显示标签
+                    aiTagsLoading.classList.add('hidden');
+                    aiTagsContainer.classList.remove('hidden');
+                    
+                    // 生成新的AI标签
+                    generateNewAITags();
+                }, 1500);
+            });
+            
+            // AI标签按钮点击事件
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('ai-tag-btn')) {
+                    const tagText = e.target.textContent.trim();
+                    addTag(tagText);
+                }
+            });
+            
+            // 添加标签函数
+            function addTag(tagText = null) {
+                const text = tagText || tagInput.value.trim();
+                if (text) {
+                    // 检查标签是否已存在
+                    const existingTags = selectedTags.querySelectorAll('.tag-item');
+                    for (let tag of existingTags) {
+                        if (tag.textContent.trim().includes(text)) {
+                            tagInput.value = '';
+                            return;
+                        }
+                    }
+                    
+                    // 创建新标签
+                    const tagItem = document.createElement('div');
+                    tagItem.className = 'tag-item bg-gray-100 text-gray-700 rounded-full text-sm px-3 py-1 flex items-center';
+                    tagItem.innerHTML = `
+                        ${text}
+                        <i class="fa fa-times ml-1 text-xs text-gray-400 cursor-pointer tag-remove"></i>
+                    `;
+                    
+                    selectedTags.appendChild(tagItem);
+                    tagInput.value = '';
+                }
+            }
+            
+            // 生成新的AI标签函数
+            function generateNewAITags() {
+                const newTags = app.generateRandomAITags(3);
+                aiTagsContainer.innerHTML = '';
+                
+                newTags.forEach(tag => {
+                    const btn = document.createElement('button');
+                    btn.className = 'ai-tag-btn text-xs text-primary bg-primary bg-opacity-10 px-2 py-0.5 rounded-full';
+                    btn.textContent = tag;
+                    aiTagsContainer.appendChild(btn);
+                });
+            }
             
             // 场景按钮点击事件
             sceneBtns.forEach(btn => {
@@ -1430,6 +1878,54 @@
                     showPage('detail-page');
                 });
             });
+            
+            // 管理员入口点击事件
+            const adminEntry = document.querySelector('.mt-4.bg-white.rounded-lg.overflow-hidden.card-shadow:last-child');
+            if (adminEntry) {
+                adminEntry.addEventListener('click', function() {
+                    // 检查用户权限
+                    if (app.checkPermission('admin')) {
+                        showPage('admin-page');
+                    } else {
+                        alert('您没有管理员权限');
+                    }
+                });
+            }
+            
+            // 更新管理员UI
+            function updateAdminUI() {
+                // 更新个人中心
+                if (app.user.role === 'admin') {
+                    // 显示管理员入口
+                    const adminEntry = document.querySelector('.mt-4.bg-white.rounded-lg.overflow-hidden.card-shadow:last-child');
+                    if (adminEntry) {
+                        adminEntry.classList.remove('hidden');
+                    }
+                    
+                    // 更新个人信息
+                    const avatarElement = document.querySelector('#profile-page .w-16.h-16.rounded-full');
+                    const nameElement = document.querySelector('#profile-page h3.text-lg');
+                    const roleElement = document.querySelector('#profile-page span.bg-primary.text-white');
+                    const levelElement = document.querySelector('#profile-page p.text-sm.text-gray-500 span.text-primary');
+                    const expBar = document.querySelector('#profile-page .bg-primary.h-2');
+                    const expText = document.querySelector('#profile-page .text-xs.text-gray-500');
+                    const pointsElement = document.querySelector('#profile-page .text-lg.font-bold.text-primary');
+                    const postsElement = document.querySelector('#profile-page .text-lg.font-bold.text-gray-800:nth-child(2)');
+                    const collectionsElement = document.querySelector('#profile-page .text-lg.font-bold.text-gray-800:nth-child(3)');
+                    const likesElement = document.querySelector('#profile-page .text-lg.font-bold.text-gray-800:nth-child(4)');
+                    
+                    if (avatarElement) avatarElement.innerHTML = `<span class="text-xl font-medium">${app.user.avatar}</span>`;
+                    if (nameElement) nameElement.textContent = app.user.name;
+                    if (roleElement) roleElement.textContent = '管理员';
+                    if (levelElement) levelElement.textContent = app.user.level;
+                    if (expBar) expBar.style.width = '100%';
+                    if (expText) expText.textContent = `${app.user.exp}/${app.user.expToNextLevel}`;
+                    if (pointsElement) pointsElement.textContent = app.user.points;
+                    if (postsElement) postsElement.textContent = app.user.posts;
+                    if (collectionsElement) collectionsElement.textContent = app.user.collections;
+                    if (likesElement) likesElement.textContent = app.user.likes;
+                }
+            }
             
             // 初始化图表
             if (document.getElementById('activityChart')) {
